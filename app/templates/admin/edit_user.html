@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Edit User Role</h1>
+    <p>Editing role for user: {{ user.username }}</p>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.role.label }} {{ form.role() }}<br>
+        {{ form.submit() }}
+    </form>
+    <a href="{{ url_for('main.manage_users') }}">Back to User List</a>
+{% endblock %}

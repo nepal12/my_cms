@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>{{ post.title }}</h1>
+
+    <div id="post-content">
+        {{ post.content|safe }}
+    </div>
+
+    <p>Status: {{ post.status }}</p>
+    <p>Published by: {{ post.author.username }}</p>
+    <p>Published on: {{ post.date_posted.strftime('%Y-%m-%d') }}</p>
+</div>
+{% endblock %}

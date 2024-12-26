@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{% if post %}Edit Post{% else %}Create Post{% endif %}</h1>
+  <form method="POST" id="postForm">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.content.label(class="form-label") }}
+      <div id="editor"></div>
+      <input type="hidden" name="{{ form.content.name }}" id="hidden-content">
+    </div>
+    <div class="mb-3">
+      {{ form.status.label(class="form-label") }}
+      {{ form.status(class="form-select") }}
+    </div>
+    {% if form.approved %}
+    <div class="mb-3">
+      {{ form.approved.label(class="form-check-label") }}
+      {{ form.approved(class="form-check-input") }}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <label for="categories" class="form-label">Categories</label>
+      {{ form.categories(class="form-select", multiple=True) }}
+    </div>
+
+    <div class="mb-3">
+      <label for="tags" class="form-label">Tags (comma-separated)</label>
+      {{ form.tags(class="form-control") }}
+    </div>
+
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+
+  <script>
+    $(document).ready(function() {
+      $('#editor').summernote({
+        height: 300,
+        minHeight: null,
+        maxHeight: null,
+        focus: true,
+        callbacks: {
+          onChange: function(contents) {
+            $('#hidden-content').val(contents);
+          }
+        }
+      });
+
+      // Set the content on load
+      $('#editor').summernote('code', $('#hidden-content').val());
+
+      $('#postForm').submit(function() {
+        $('#hidden-content').val($('#editor').summernote('code'));
+      });
+    });
+  </script>
+{% endblock %}

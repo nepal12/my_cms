@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{% if post %}Edit Post{% else %}Create Post{% endif %}</h1>
+<form method="POST" id="postForm">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.content.label(class="form-label") }}
+        <div id="editor">{{ post.content | safe }}</div>
+        <input type="hidden" name="{{ form.content.name }}">
+    </div>
+
+    <div class="mb-3">
+        {{ form.status.label(class="form-label") }}
+        {{ form.status(class="form-select") }}
+    </div>
+
+    <div class="mb-3">  <label for="categories" class="form-label">Categories</label>
+        {{ form.categories(class="form-select", multiple=True) }}
+    </div>
+
+    <div class="mb-3">  <label for="tags" class="form-label">Tags (comma-separated)</label>
+        {{ form.tags(class="form-control") }}
+        {% for tag in form.tags.data %}
+        <span class="badge bg-primary">{{ tag }}</span>
+        {% endfor %}
+    </div>
+
+    {% if show_approval %}  <div class="mb-3">
+        {{ form.approved.label(class="form-check-label") }}
+        {{ form.approved(class="form-check-input") }}
+    </div>
+    {% endif %}
+
+    {{ form.submit(class="btn btn-primary") }}
+</form>
+
+<script>
+    function removeFontTags(html) {
+        const fontTagRegex = /<font(?: [^>]*)?>(.*?)<\/font>/gi;
+        return html.replace(fontTagRegex, (match, content) => {
+            let newStyle = "";
+            const styleMatch = match.match(/style=["']?([^"']*)["']?/i);
+            const colorMatch = match.match(/color=["']?([^"']*)["']?/i);
+
+            if (colorMatch) {
+                newStyle += `color: ${colorMatch[1]};`;
+            }
+            if (styleMatch) {
+                newStyle += styleMatch[1];
+            }
+
+            if (newStyle) {
+                return `<span style="<span class="math-inline">\{newStyle\}"\></span>{content}</span>`;
+            } else {
+                return content;
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        $('#editor').summernote({
+            height: 300,
+            styleWithSpan: true,
+            callbacks: {
+                onInit: function() {
+                    let initialContent = $('input[name="content"]').val(); // Get initial content
+                    initialContent = removeFontTags(initialContent); // Apply font tag removal
+                    $('#editor').summernote('code', initialContent); // Set cleaned content
+                },
+                onChange: function(contents) {
+                    contents = removeFontTags(contents); // Apply font tag removal on change
+                    $('input[name="content"]').val(contents); // Update content
+                }
+            }
+        });
+
+        $('#postForm').submit(function(e) {
+            e.preventDefault();
+
+            let content = $('#editor').summernote('code');
+            content = removeFontTags(content);
+
+            console.log("Content before sending:", content);
+            console.log("Content before sending (escaped):", $('<div/>').text(content).html());
+
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: $(this).serialize(),
+                success: function(response) {
+                    console.log("Form submitted successfully:", response);
+                    window.location.href = "{{ url_for('main.index') }}"; // Use url_for
+                },
+                error: function(error) {
+                    console.error("Error submitting form:", error);
+                    alert("An error occurred while submitting the form.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
